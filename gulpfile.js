@@ -10,6 +10,10 @@ var gulp            = require('gulp'),
     reload          = browserSync.reload,
     rimraf          = require('rimraf'),
     pngquant        = require('imagemin-pngquant'),
+    concat          = require('gulp-concat'),
+    cssmin          = require('gulp-cssmin'),
+    uglify          = require('gulp-uglify'),
+    rename          = require('gulp-rename'),
     sassLint        = require('gulp-sass-lint');
 
 var path = {
@@ -48,10 +52,11 @@ gulp.task('html:build', function () {
 
 // JS_BUILD
 gulp.task('js:build', function () {
-    return gulp.src(path.src.js) //Найдем наш main файл
-        .pipe(sourcemaps.init()) //Инициализируем sourcemap
-        .pipe(sourcemaps.write()) //Пропишем карты
-        .pipe(gulp.dest(path.build.js)) //Выплюнем готовый файл в build
+    return gulp.src(path.src.js) 
+        .pipe(concat('main.js'))
+        .pipe(rename('main.min.js'))
+        .pipe(uglify())
+        .pipe(gulp.dest(path.build.js))
         .pipe(reload({stream: true, once: true})); //И перезагрузим сервер
 });
 
@@ -71,13 +76,13 @@ gulp.task('sass:build', function() {
         'bb >= 10'
     ];
     return gulp.src(path.src.sass)
-        .pipe(sourcemaps.init()) //Инициализируем sourcemap
         .pipe(sass().on('error', sass.logError)) // Using gulp-sass
         .pipe(autoprefixer({
             browsers: supportedBrowsers,
             cascade: false
         })) //Добавим вендорные префиксы
-        .pipe(sourcemaps.write()) //Пропишем карты
+        .pipe(rename('style.min.css'))
+        .pipe(cssmin({ keepSpecialComments: false, specialComments: 0 }))
         .pipe(gulp.dest(path.build.css)) //И в build
         .pipe(reload({stream: true, once: true}));
 });
